@@ -91,6 +91,22 @@ export default function DashboardPage() {
     if (data) setCustomers(data);
     if (error) console.error("Müşteri yükleme hatası:", error);
   };
+  const handleStatusChange = async (appointmentId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: newStatus })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+      
+      // Başarılı olursa sayfadaki verileri yenile
+      fetchDashboardData();
+    } catch (error) {
+      console.error("Durum güncellenirken hata:", error);
+      alert("Durum güncellenemedi!");
+    }
+  };
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-violet-500/30">
       <Sidebar />
@@ -222,14 +238,23 @@ export default function DashboardPage() {
                             {appt.total_price} ₺
                         </td>
                         <td className="p-4">
-                           <span className={`
-                             px-2.5 py-1 rounded-full text-xs font-medium border
-                             ${appt.status === 'confirmed' ? 'bg-emerald-950/30 text-emerald-400 border-emerald-900/50' : 
-                               appt.status === 'pending' ? 'bg-amber-950/30 text-amber-400 border-amber-900/50' : 
-                               'bg-slate-800 text-slate-400 border-slate-700'}
-                           `}>
-                             {appt.status === 'confirmed' ? 'Onaylandı' : appt.status === 'pending' ? 'Bekliyor' : appt.status}
-                           </span>
+                        <select
+    value={appt.status}
+    onChange={(e) => handleStatusChange(appt.id, e.target.value)}
+    className={`
+      px-2.5 py-1 rounded-full text-xs font-medium border outline-none cursor-pointer appearance-none text-center
+      ${appt.status === 'confirmed' ? 'bg-emerald-950/30 text-emerald-400 border-emerald-900/50' : 
+        appt.status === 'pending' ? 'bg-amber-950/30 text-amber-400 border-amber-900/50' : 
+        appt.status === 'completed' ? 'bg-blue-950/30 text-blue-400 border-blue-900/50' :
+        appt.status === 'cancelled' ? 'bg-red-950/30 text-red-400 border-red-900/50' :
+        'bg-slate-800 text-slate-400 border-slate-700'}
+    `}
+  >
+    <option value="pending" className="bg-slate-900 text-amber-400">Bekliyor</option>
+    <option value="confirmed" className="bg-slate-900 text-emerald-400">Onaylandı</option>
+    <option value="completed" className="bg-slate-900 text-blue-400">Tamamlandı</option>
+    <option value="cancelled" className="bg-slate-900 text-red-400">İptal Edildi</option>
+  </select>
                         </td>
                       </tr>
                     )
