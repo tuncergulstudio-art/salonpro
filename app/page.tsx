@@ -38,7 +38,7 @@ export default function DashboardPage() {
   });
   const [recentAppointments, setRecentAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [customers, setCustomers] = useState<any[]>([]);
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
@@ -80,8 +80,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchCustomers(); 
   }, []);
-
+  const fetchCustomers = async () => {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('full_name', { ascending: true });
+  
+    if (data) setCustomers(data);
+    if (error) console.error("Müşteri yükleme hatası:", error);
+  };
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-violet-500/30">
       <Sidebar />
@@ -236,6 +245,7 @@ export default function DashboardPage() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSuccess={fetchDashboardData}
+        customers={customers}
       />
     </div>
   );

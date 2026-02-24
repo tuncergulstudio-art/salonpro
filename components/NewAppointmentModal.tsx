@@ -7,6 +7,7 @@ interface NewAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  customers: any[];
 }
 
 export const NewAppointmentModal: React.FC<NewAppointmentModalProps> = ({
@@ -99,7 +100,29 @@ export const NewAppointmentModal: React.FC<NewAppointmentModalProps> = ({
 
     return { totalAmount, totalDuration, endTimeDisplay };
   }, [selectedServiceIds, services, startTime]);
+  const handleQuickClientAdd = async () => {
+    const name = prompt("Müşteri Adı Soyadı:");
+    if (!name) return; // İsim girilmezse iptal et
+    
+    const phone = prompt("Müşteri Telefonu:");
+    
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert({ full_name: name, phone: phone || '' })
+        .select()
+        .single();
 
+      if (error) throw error;
+      if (data) {
+        setClients(prev => [...prev, data]);
+        setSelectedClientId(data.id);
+        alert("Müşteri başarıyla eklendi!");
+      }
+    } catch (err: any) {
+      alert("Hata oluştu: " + err.message);
+    }
+  };
   const toggleService = (id: string) => {
     setSelectedServiceIds(prev => 
       prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
@@ -197,9 +220,14 @@ export const NewAppointmentModal: React.FC<NewAppointmentModalProps> = ({
             
             {/* Müşteri Seçimi */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <User className="w-4 h-4" /> Müşteri
-              </label>
+            <div className="flex items-center justify-between">
+  <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+    <User className="w-4 h-4" /> Müşteri
+  </label>
+  <button type="button" onClick={handleQuickClientAdd} className="text-xs text-violet-400 hover:text-white">
+    + Hızlı Ekle
+  </button>
+</div>
               <select
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:ring-2 focus:ring-violet-600 outline-none"
                 value={selectedClientId}
